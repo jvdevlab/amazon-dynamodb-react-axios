@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: amazon-dynamodb-react-axios
+
+# https://github.com/aws/serverless-application-model/blob/master/versions/2016-10-31.md#globals-section
+Globals:
+  Api:
+    Cors:
+      AllowOrigin: "'http://localhost:3000'"
+      AllowMethods: "'POST'"
+      AllowHeaders: "'content-type'"
+
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html
+Parameters:
+  ParamTableName:
+    Type: String
+    Default: test_data
+  ParamStageName:
+    Type: String
+    Default: Prod
+  ParamFunctionName:
+    Type: String
+    Default: amazon-dynamodb-react-axios
+
+Resources:
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html
+  MyTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: !Ref ParamTableName
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      Tags:
+        - Key: "name"
+          Value: !Ref ParamFunctionName
+
+  # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+  MyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: myapp/
+      Handler: app.handler
+      Runtime: nodejs14.x
+      MemorySize: 128
+      Timeout: 3
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ParamTableName
+      Policies:
+        # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ParamTableName
+      Events:
+        # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-eventsource.html
+        Root:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+        PostProxy:
+          Type: Api
+          Properties:
+            Path: "/{proxy+}"
+            Method: post
+      Tags:
+        "name": !Ref ParamFunctionName
+
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-logs-loggroup.html
+  MyFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${MyFunction}
+      RetentionInDays: 7
+    DependsOn: MyFunction
+
+Outputs:
+  ApiGatewayUrl:
+    Description: "API Gateway URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ParamStageName}/"

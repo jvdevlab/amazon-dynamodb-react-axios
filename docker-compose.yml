@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  # docker compose up frontend
+  # http://localhost:3000
+  frontend:
+    build: ./frontend
+    tty: true
+    stdin_open: true
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    volumes:
+      - ${pwd:-.}/frontend/public:/app/public:ro
+      - ${pwd:-.}/frontend/src:/app/src:ro
+
+  # docker compose up backend-deploy
+  backend-deploy:
+    build: ./backend
+    working_dir: /backend
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ${pwd:-.}/backend:/backend
+    command: sh -c "sam build && sam deploy --s3-bucket ${S3_BUCKET}"
+
+  # docker compose up backend-describe
+  backend-describe:
+    image: amazon/aws-cli
+    volumes:
+      - ~/.aws:/root/.aws
+    # https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-filter.html
+    command: cloudformation describe-stacks --query "Stacks[0].Outputs[?OutputKey=='ApiGatewayUrl'].OutputValue" --stack-name amazon-dynamodb-react-axios
+
+  # docker compose up backend-delete
+  backend-delete:
+    image: amazon/aws-cli
+    volumes:
+      - ~/.aws:/root/.aws
+    command: cloudformation delete-stack --stack-name amazon-dynamodb-react-axios
+
+  # docker compose run --rm aws-shell
+  aws-shell:
+    build: ./backend
+    tty: true
+    stdin_open: true
+    volumes:
+      - ~/.aws:/root/.aws
+    entrypoint: aws-shell
