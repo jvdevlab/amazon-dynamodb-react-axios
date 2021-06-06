@@ -1,6 +1,6 @@
 ## Blog Post
 
-:scroll: A more detailed description of this project and a code walk-through can be found on my [blog](https://jvdevlab.com/blog/aws/dynamodb/react-axios).
+:scroll: See this [blog post](https://jvdevlab.com/blog/aws/dynamodb/react-axios) for more details about this project.
 
 ## Description
 
@@ -46,7 +46,7 @@ docker compose up frontend
 - Open the app <http://localhost:3000>
 - Verify that you can perform CRUD operations.
 
-![](https://jvdevlab.com/assets/images/01-5eadf4d59583e0966f8cf0b22cfe88de.PNG)
+![](https://jvdevlab.com/img/amazon-dynamodb-react-axios/01.PNG)
 
 ## Cleanup
 
