@@ -46,6 +46,8 @@ docker compose up frontend
 - Open the app <http://localhost:3000>
 - Verify that you can perform CRUD operations.
 
+![](https://jvdevlab.com/assets/images/01-5eadf4d59583e0966f8cf0b22cfe88de.PNG)
+
 ## Cleanup
 
 - To delete the backend from AWS run:
